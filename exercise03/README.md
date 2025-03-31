@@ -95,8 +95,6 @@ Then, a separate process is created for each command-line argument using `fork` 
 Each fork receives a pointer to the copy of the argument it should process.
 The job of the fork is shifting this argument to the right by two (2) positions (into a new array),
 and converting the input string to upper case (in-place).
-In order to make the shifted string accessible to the main process,
-inter-process communication (such as pipes or shared memory) should be used to return the result.
 
 Once the main process is done spawning the child processes, it waits for their completion
 and for each completed process, the original argument it received, the upper-cased version,

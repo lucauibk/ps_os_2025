@@ -10,7 +10,7 @@ EXERCISE = 02
 # Adjust this list according to your setup.
 # The zip command will also show which files are put into the archive.
 # Check this output to ensure that only the required files are included.
-EXCLUDE_PATTERNS = "**.vscode/*" "**.idea/*" "**__MACOSX/*" "**.DS_Store/*" "**.dSYM/*"
+EXCLUDE_PATTERNS = "**.vscode/*" "**.idea/*" "**__MACOSX/*" "**.DS_Store*" "**.dSYM/*"
 
 ARCHIVE= "../exc$(EXERCISE)_$(USERNAME).zip"
 
@@ -24,6 +24,6 @@ zip: clean
 
 .PHONY: clean
 clean:
-	@for dir in task?; do \
+	@for dir in task_?; do \
 	  $(MAKE) -C "$$dir" clean; \
 	done
