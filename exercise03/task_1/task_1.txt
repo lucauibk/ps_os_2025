@@ -1,0 +1,17 @@
+Unterschied SIGINT/SIGKILL:
+SIGKILL cannot be caught blocked or ignored (instant termination of prozess)
+SIGSTOP: 
+stopt einen prozess (cannot be ignored or handled)
+SIGCONT:
+kann einen gestopten Prozess weiterführen
+CMD+c: SIGINT
+CMD+z: SIGSTOP
+
+falls ein signal kommt während der handler läuft:
+
+wenn das selbe signal kommt, geht das signal erst durch wenn der handler fertig ist
+Standardmäßig wird dasselbe Signal blockiert, solange der zugehörige Handler noch läuft. Es wird also nicht erneut ausgeführt,
+bis der vorherige Handler beendet wurde.
+Dieses Verhalten verhindert, dass der Handler sich selbst rekursiv aufruft.
+
+Ein anderes Signal kann eintreffen und verarbeitet werden, solange es nicht explizit blockiert wurde

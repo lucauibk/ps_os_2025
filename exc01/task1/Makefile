@@ -1,7 +1,7 @@
 CFLAGS = -std=c11 -Wall -Wextra -Wpedantic
 
 .PHONY: all
-all: game
+all: game 
 
 .PHONY: clean
 clean:

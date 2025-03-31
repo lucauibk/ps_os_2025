@@ -1,0 +1,13 @@
+
+Is the order of the messages consistent?:
+no
+Can the order of these messages be predicted?
+no
+Der Scheduling-Strategie des Betriebssystems
+Der Systemauslastung zum Zeitpunkt der Ausführung
+Der benötigten Rechenzeit für einzelne Prozesse (abhängig von rand() und der Anzahl der Iterationen s)
+What does it depend on?
+Prozesspriorität, Laufzeit die sich unterscheided je nach dem wie groß s ist
+
+Wenn es vor fork() aufgerufen wird, erben alle Kindprozesse denselben Zufallszahlen-Seed, was dazu führt, dass sie identische Zufallszahlenfolgen produzieren.
+Wenn es nach fork() aufgerufen wird, erhält jedes Kind eine eigene PID, die als Seed für rand() dient. Dadurch werden verschiedene Zufallszahlen generiert, was für unabhängige Simulationsergebnisse sorgt.

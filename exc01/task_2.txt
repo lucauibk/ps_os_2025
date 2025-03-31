@@ -1,0 +1,15 @@
+
+ls- listing all files and directorys in current directory
+cd- switching directorys
+touch- create new file
+mkdir- create new directory
+cp- copy file to path
+mv- move file to path
+rm- remove file
+> - redirecting terminal output
+| - chaining commands
+vim- open file (i to edit, esc to exit editor, :wq to save and close)
+history- show all commands that have been written
+cat- print content of a file
+eval
+

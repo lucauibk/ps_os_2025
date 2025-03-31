@@ -1,0 +1,4 @@
+1. erstellt ein ZIP File mit Exercise nummer und csbb nummer als titel des files. Löscht alle nicht notwendigen und unsichtbaren files im zip
+2. mit make kann aber auch mit make all oder make zip aufgerufen werden
+3. in den anfangsordner der alle files enthält die im zip sein sollen also in diesem fall exercis02
+4. automatisieren, tests, backups

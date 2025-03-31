@@ -23,7 +23,7 @@ Use the following template to get started:
 int main(void) {
     // TODO: for each signal, use sigaction to register signal handler
 
-    const time_t work_seconds = 1;
+    const time_t work_seconds = 1;q
 
     struct timespec work_duration = {
         .tv_sec = work_seconds,

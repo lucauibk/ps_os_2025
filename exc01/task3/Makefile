@@ -13,7 +13,7 @@ $(TARGET): $(TARGET).c
 	$(CC) $(CFLAGS) $^ -o $(TARGET) $(LDFLAGS)
 
 clean:
-	$(RM) $(TARGET)
+	$(RM) $(TARGET) $(EXTRAS)
 
 handin: args.txt run.txt
 	@cat <(echo -e "Passing arguments:\n" && cat args.txt) \
