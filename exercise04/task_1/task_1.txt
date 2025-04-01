@@ -1,0 +1,19 @@
+1.)
+Set an environment variable for a single command:
+OFFSET=5 ./arg_counter a b c
+This sets OFFSET only for that command.
+Set an environment variable persistently in the current session:
+export OFFSET=5
+This keeps OFFSET set for all commands in the session.
+Unset an environment variable:
+unset OFFSET
+This removes OFFSET from the environment.
+2.)
+echo $?
+3.)
+; führt als erstes linken cmd aus, dann unabhängig vom ersten cmd den rechten cmd aus
+&& führt als erstes linken cmd aus, dann wenn dieser erfolgreich ist den rechten cmd
+|| führt als erstes linken cmd aus, dann wenn dieser fehlschlägt den rechten cmd
+4.)
+PATH ist eine Umgebungsvariable, die eine Liste von Verzeichnissen enthält, in denen die Shell nach ausführbaren Dateien sucht.
+Das PATH-System ist wichtig, weil es Benutzern ermöglicht, Programme zu starten, ohne ihren vollständigen Pfad anzugeben.
