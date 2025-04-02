@@ -5,7 +5,8 @@ typedef enum{
     ERR_NO_ARGS = 13,
     ERR_TOO_MANY_ARGS = 7,
     ERR_INVALID_OFFSET = 99,
-    ERR_EXACT_ARGS = 5
+    ERR_EXACT_ARGS = 5,
+    ERR_OUT_OF_BOUNDS_OFFSET = 98
 } ExitCode;
 
 int is_number(const char *str){
@@ -38,6 +39,10 @@ int main(int argc, char *argv[]){
         if (!is_number(offset_env)) {
             fprintf(stderr, "Error: OFFSET contains invalid data.\n");
             return ERR_INVALID_OFFSET;
+        }
+        if(atoi(offset_env) < 0 || atoi(offset_env) > 20){
+            fprintf(stderr, "Error: OFFSET out of bounds.\n");
+            return ERR_OUT_OF_BOUNDS_OFFSET;
         }
         offset = atoi(offset_env);
     }

@@ -14,4 +14,4 @@ arg_counter.o: arg_counter.c
 
 
 clean:
-	@rm -f *.o task_1
+	@rm -f *.o arg_counter
