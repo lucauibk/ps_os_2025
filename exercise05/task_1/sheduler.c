@@ -74,9 +74,9 @@ int main(int argc, char *argv[]) {
             // Parse integers from buffer
             int numbers[128];
             int n = 0;
-            char *token = strtok(buffer, " ");
+            char *token = strtok(buffer, " "); //strtok seperates each number
             while (token != NULL && n < 128) {
-                numbers[n++] = atoi(token);
+                numbers[n++] = atoi(token); //adds each number to the array
                 token = strtok(NULL, " ");
             }
 
