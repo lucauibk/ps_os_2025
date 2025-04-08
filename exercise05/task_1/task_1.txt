@@ -1,0 +1,5 @@
+- POSIX erlaubt Prioritäten im Bereich `0` bis `MQ_PRIO_MAX - 1`.
+- Der exakte Maximalwert hängt vom System ab und kann mit `sysconf(_SC_MQ_PRIO_MAX)` erfragt werden.
+- Auf vielen Systemen ist der Bereich typischerweise `0–31`.
+- Höhere Zahlen bedeuten **höhere Priorität**.
+- Eine Nachricht mit Prio `99` ist wichtiger als eine mit Prio `2` – sie wird zuerst verarbeitet, sofern das System diese Priorität unterstützt.

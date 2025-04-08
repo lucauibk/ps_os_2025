@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#define MAX_MSG_SIZE 256
+#define MAX_MSG_SIZE 256 //50 zahlen mit je 3 zeichen ungefähr 200
 #define MAX_MESSAGES 10
 
 int main(int argc, char* argv[]){
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
     const char* queue_name = argv[1];
     unsigned int prio = atoi(argv[2]);
 
-    mqd_t mq = mq_open(queue_name, O_WRONLY);
+    mqd_t mq = mq_open(queue_name, O_WRONLY); //opens only if it exists and only for writing
     if(mq == (mqd_t)-1){
         perror("mq_open");
         exit(EXIT_FAILURE);

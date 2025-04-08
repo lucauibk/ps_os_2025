@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
     // Remove previous queue if it exists
     mq_unlink(queue_name);
 
-    mq = mq_open(queue_name, O_CREAT | O_RDONLY, 0644, &attr);
+    mq = mq_open(queue_name, O_CREAT | O_RDONLY, 0600, &attr);
     if (mq == (mqd_t)-1) {
         perror("mq_open");
         exit(EXIT_FAILURE);
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
             char *token = strtok(buffer, " "); //strtok seperates each number
             while (token != NULL && n < 128) {
                 numbers[n++] = atoi(token); //adds each number to the array
-                token = strtok(NULL, " ");
+                token = strtok(NULL, " "); //strtok remembers the last postion of the string and goes on
             }
 
             if (n == 0) {
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
                 printf("\rStatistics progress: %d%%", (100 * (i + 1) / n));
                 fflush(stdout);
-                usleep(5000000); // 500 ms
+                usleep(500000); // 500 ms
             }
 
             double mean = (double)sum / n;

@@ -1,0 +1,6 @@
+checksum rechnet die summe zurück um die richtigkeit zu überprüfen, wenn alles richtig berechnet wurde ist checksum 0
+
+Warum kommt es zu Checksum != 0?
+Weil der Consumer manchmal Werte liest, bevor der Producer sie geschrieben hat, dadurch summiert 
+der Consumer z. B. teils noch alte oder 0-Werte im Buffer.
+Das ist eine typische Race Condition, da keine Synchronisation zwischen Producer und Consumer existiert.
