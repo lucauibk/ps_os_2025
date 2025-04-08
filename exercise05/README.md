@@ -93,8 +93,8 @@ Feel free to use it.
 
 ```c
 struct shared_data {
-    unsigned long long buffer[]; // circular buffer
     unsigned long long result;   // final result
+    unsigned long long buffer[]; // circular buffer
 };
 ```
 
