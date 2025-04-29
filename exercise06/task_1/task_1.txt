@@ -1,0 +1,37 @@
+1.
+improve performance, make programm faster, use less memory
+O3 is more aggresive, has some more advanced techniques
+2.
+Command being timed: "./task_1_atomic"
+        User time (seconds): 7.82
+        System time (seconds): 0.08
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.71
+
+Command being timed: "./task_1_mutex"
+        User time (seconds): 3.87
+        System time (seconds): 25.56
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.49
+
+Command being timed: "./task_1_atomic"
+        User time (seconds): 7.87
+        System time (seconds): 0.10
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.72
+
+Command being timed: "./task_1_mutex"
+        User time (seconds): 3.41
+        System time (seconds): 23.47
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.34
+3.
+non atomic +=:
+    -multiple threads might try to modify the same variable simultaneously
+atomic +=:
+    -ensures only one thread can modify at the time
+atomic_fetch_add() vs. atomic +=:
+    -almost the same but atomic_fetch_add() returns the value of the variable before operation is applied (more explict, low-level)
+
+
+Addition/Subtraction (atomic_fetch_add, atomic_fetch_sub)
+Bitwise Operations (atomic_fetch_and, atomic_fetch_or, atomic_fetch_xor)
+Compare-and-Swap (CAS, i.e., atomic_compare_exchange_strong)
+Exchange (atomic_exchange)
+Load/Store (atomic_load, atomic_store)
