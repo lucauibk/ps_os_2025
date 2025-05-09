@@ -2,6 +2,12 @@
 #define THREAD_POOL_H
 
 #include <stddef.h> // for size_t
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdatomic.h>
 
 typedef void* (*job_function)(void*);
 typedef void* job_arg;
@@ -10,18 +16,32 @@ typedef /* TODO */ job_id;
 /***
  * This is the stub of a simple job queue.
  */
+typedef struct job_struct {
+	unsigned int seed;
+	uint64_t result;
+	SlotMachine* slot_machine;
+}job_struct;
 
-struct job_queue_entry {
-	// TODO: Design the contents for a queue, which stores jobs.
-};
 
-/***
- * This is the stub for the thread pool that uses the queue.
- * Implement at LEAST the Prototype functions below.
- */
+typedef struct job_queue_entry {
+	job_function function;
+	job_arg argument;
+	job_queue_entry* next;
+}job_queue_entry;
+
+typedef struct job_queue{
+	job_queue_entry* tail;
+	job_queue_entry* head;
+ }job_queue;
 
 typedef struct {
-	// TODO: Design the contents of a thread pool
+	job_queue_entry* queue;
+	job_queue* job_queue;
+	pthread_t* threads;
+	size_t num_threads;
+	bool stop;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
 } thread_pool;
 
 // Prototypes for REQUIRED functions
