@@ -1,0 +1,4 @@
+e28715d2
+
+hint muss erstellt werden, dort wird ein key eingetragen welcher dann in key.txt kopiert werden muss dann wird solution erstellt
+strace -o trace.log ./secret
