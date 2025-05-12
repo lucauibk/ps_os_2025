@@ -1,4 +1,8 @@
 e28715d2
 
 hint muss erstellt werden, dort wird ein key eingetragen welcher dann in key.txt kopiert werden muss dann wird solution erstellt
+<<<<<<< HEAD
+strace -o trace.log ./secret
+=======
 strace -o trace.log ./secret -schreibt system calls in trace.log file
+>>>>>>> e7f06ab7ba83d5cb096bcea9ff6fd76b130c2e6d
