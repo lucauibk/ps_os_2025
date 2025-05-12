@@ -104,7 +104,7 @@ void* listener(void* arg) {
 
         pthread_t tid;
         pthread_create(&tid, NULL, client_handler, cargs);
-        pthread_detach(tid);  // Optional: nicht joinen
+        pthread_join(tid, NULL);  // Warten auf den Client-Thread
     }
 
     return NULL;
