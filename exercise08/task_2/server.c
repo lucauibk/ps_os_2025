@@ -40,45 +40,6 @@ void shutdown_server(server_state_t* server_state){
     pthread_mutex_destroy(&server_state->lock);
 }
 
-void* client_handler(void* arg){
-    client_info_t* client_info = (client_info_t*)arg;
-    char buffer [MSG_SIZE];
-    int bytes_received = recv(client_info->socket_fd, buffer, sizeof(buffer), 0);
-    strncpy(client_info->username, buffer, MSG_SIZE - 1);
-    client_info->username[MSG_SIZE - 1] = '\0'; // Ensure null termination
-    client_info->is_admin = is_admin(client_info->username, client_info->server_state);
-    while(1){
-        bytes_received = recv(client_info->socket_fd, buffer, sizeof(buffer), 0);
-        buffer[bytes_received] = '\0'; // Null-terminate the received string
-        if(client_info->is_admin){
-            if(strcmp(buffer, "/shutdown") == 0){
-                printf("Server is shutting down, waiting for %d clients to disconnect...\n", client_info->server_state->active_clients);
-                pthread_mutex_lock(&client_info->server_state->lock);
-                client_info->server_state->shutdown_requested = 1;
-                pthread_mutex_unlock(&client_info->server_state->lock);
-                break;
-            }else if(strcmp(buffer, "/quit") == 0){
-                printf("%s disconnected (admin).\n", client_info->username);
-                break;
-            }
-        }else{
-            if(strcmp(buffer, "/quit") == 0){
-                printf("%s disconnected.\n", client_info->username);
-                break;
-            }
-        }
-        printf("%s: %s\n", client_info->username, buffer);
-
-    }
-    close(client_info->socket_fd);
-    free(client_info);
-    pthread_mutex_lock(&client_info->server_state->lock);
-    client_info->server_state->active_clients -= 1;
-    pthread_mutex_unlock(&client_info->server_state->lock);
-    return NULL;
-    
-}
-
 void* listener(void* arg){
     server_state_t* server_state = (server_state_t*)arg;
     while(1){
@@ -91,7 +52,6 @@ void* listener(void* arg){
         client_info->socket_fd = clientfd;
         client_info->is_admin = 0;
         client_info->server_state = server_state;
-        pthread_create(&client_info->thread_id, NULL, client_handler, client_info);
         pthread_detach(client_info->thread_id);
         pthread_mutex_lock(&server_state->lock);
         server_state->active_clients += 1;
