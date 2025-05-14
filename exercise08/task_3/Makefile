@@ -2,17 +2,12 @@ CC=gcc
 CFLAGS= -pthread -Wall -Wextra -pedantic -std=c11
 
 all: server client
-server: server.o
-	$(CC) $(CFLAGS) -o server server.o
-server.o: server.c
-	$(CC) $(CFLAGS) -c server.c
 
-client: client.o
-	$(CC) $(CFLAGS) -o client client.o
+server: server.c
+	$(CC) $(CFLAGS) -o server server.c
 
-client.o: client.c
-	$(CC) $(CFLAGS) -c client.c	
+client: client.c
+	$(CC) $(CFLAGS) -o client client.c
 
 clean:
-	rm -f server.o server client.o client
-.PHONY: all clean
+	rm -f server client
