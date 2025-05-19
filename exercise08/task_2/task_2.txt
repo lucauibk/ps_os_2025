@@ -1,0 +1,14 @@
+1. INADDR_ANY vs. INADDR_LOOPBACK
+Ja, wir könnten auch INADDR_LOOPBACK (127.0.0.1) verwenden, wenn der Server nur lokale Verbindungen akzeptieren soll.
+
+INADDR_ANY (0.0.0.0) bedeutet, dass der Server auf allen verfügbaren Netzwerkinterfaces lauscht (z. B. LAN, WLAN, localhost).
+INADDR_LOOPBACK beschränkt den Server auf lokale Verbindungen (nur von demselben Gerät aus möglich), was für Entwicklung und Tests oft ausreichend ist.
+2. Zwei andere Socket-Typen als SOCK_STREAM
+SOCK_DGRAM: Für verbindungsloses Senden von Nachrichten (UDP). Nachrichten können verloren gehen, werden aber schnell übertragen.
+SOCK_RAW: Ermöglicht den Zugriff auf rohe IP-Pakete. Wird für benutzerdefinierte Netzwerkprotokolle oder Netzwerksniffer verwendet, erfordert Root-Rechte.
+3. Gültiger Bereich für addr.sin_port
+Gültiger Bereich: 0 – 65535
+Aber: Ports 0–1023 sind „Well-known Ports“, oft durch das System reserviert.
+4. Warum Port ≥ 1024?
+Ports <1024 erfordern oft Root-Rechte, um gebunden zu werden.
+Ports ≥1024 sind nicht reserviert, können daher von normalen Benutzerprogrammen verwendet werden (z. B. in Benutzertests, studentischen Projekten, etc.).

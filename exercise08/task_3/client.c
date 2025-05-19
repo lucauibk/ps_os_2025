@@ -2,9 +2,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
+#include "common.h"
 
-#define MSG_SIZE 128
+int server_socket;
+
+void* receive_thread(void* arg) {
+    char buffer[MSG_SIZE + MSG_SIZE];
+    while (1) {
+        ssize_t len = recv(server_socket, buffer, sizeof(buffer) - 1, 0);
+        if (len <= 0) break;
+        buffer[len] = '\0';
+        printf("%s", buffer);
+        fflush(stdout);
+    }
+    return NULL;
+}
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -13,50 +28,41 @@ int main(int argc, char* argv[]) {
     }
 
     int port = atoi(argv[1]);
-    char* username = argv[2];
+    const char* username = argv[2];
 
-    // Socket erstellen
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
+    server_socket = socket(PF_INET, SOCK_STREAM, 0);
+    if (server_socket < 0) {
         perror("socket");
         exit(EXIT_FAILURE);
     }
 
-    // Serveradresse vorbereiten
-    struct sockaddr_in server_addr = {
+    struct sockaddr_in addr = {
         .sin_family = AF_INET,
         .sin_port = htons(port),
-        .sin_addr.s_addr = htonl(INADDR_LOOPBACK), // oder INADDR_ANY, falls extern
+        .sin_addr.s_addr = htonl(INADDR_LOOPBACK)
     };
 
-    // Verbindung aufbauen
-    if (connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+    if (connect(server_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         perror("connect");
-        close(sockfd);
         exit(EXIT_FAILURE);
     }
 
-    // Benutzername senden
-    send(sockfd, username, strlen(username), 0);
+    send(server_socket, username, strlen(username), 0);
 
-    char buffer[MSG_SIZE];
-    while (1) {
-        printf("> ");
-        if (fgets(buffer, sizeof(buffer), stdin) == NULL) break;
+    pthread_t recv_tid;
+    pthread_create(&recv_tid, NULL, receive_thread, NULL);
 
-        // Newline entfernen
-        char* newline = strchr(buffer, '\n');
-        if (newline) *newline = '\0';
-
-        // Nachricht senden
-        send(sockfd, buffer, strlen(buffer), 0);
-
-        // Bei /quit oder /shutdown beenden
-        if (strcmp(buffer, "/quit") == 0 || strcmp(buffer, "/shutdown") == 0) {
+    char msg[MSG_SIZE];
+    while (fgets(msg, sizeof(msg), stdin)) {
+        if (strcmp(msg, "/quit\n") == 0 || strcmp(msg, "/shutdown\n") == 0) {
+            send(server_socket, msg, strlen(msg), 0);
             break;
         }
+        send(server_socket, msg, strlen(msg), 0);
     }
 
-    close(sockfd);
+    close(server_socket);
+    pthread_cancel(recv_tid);
+    pthread_join(recv_tid, NULL);
     return 0;
 }

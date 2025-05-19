@@ -3,215 +3,190 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <arpa/inet.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <signal.h>
+#include "common.h"
 
-#define MSG_SIZE 128
-
-typedef struct server_state server_state_t;
-
-typedef struct client_info {
-    int socket_fd;
-    pthread_t thread_id;
+typedef struct {
+    int socket;
     char username[MSG_SIZE];
     int is_admin;
-    server_state_t* server_state;
-} client_info_t;
+} Client;
 
-struct server_state {
-    int listener_fd;
-    int shutdown_requested;
-    pthread_t listener_thread_id;
-    pthread_mutex_t lock;
-    int active_clients;
-    char admins[5][MSG_SIZE];
-    int num_admins;
-};
+Client* clients[MAX_CLIENTS];
+int client_count = 0;
+char admin_list[MAX_ADMINS][MSG_SIZE];
+int admin_count = 0;
+int shutting_down = 0;
+pthread_mutex_t client_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_t listener_thread;
 
-// Entfernt '\n' vom Ende eines Strings
-void strip_newline(char* str) {
-    char* newline = strchr(str, '\n');
-    if (newline) *newline = '\0';
+void broadcast(const char *message, int sender_socket) {
+    pthread_mutex_lock(&client_mutex);
+    for (int i = 0; i < client_count; i++) {
+        if (clients[i]->socket != sender_socket) {
+            send(clients[i]->socket, message, strlen(message), 0);
+        }
+    }
+    pthread_mutex_unlock(&client_mutex);
 }
 
-// Prüft, ob Benutzername ein Admin ist
-int is_admin(const char* username, server_state_t* state) {
-    for (int i = 0; i < state->num_admins; i++) {
-        if (strcmp(username, state->admins[i]) == 0) {
+void remove_client(int socket) {
+    pthread_mutex_lock(&client_mutex);
+    for (int i = 0; i < client_count; i++) {
+        if (clients[i]->socket == socket) {
+            close(clients[i]->socket);
+            free(clients[i]);
+            for (int j = i; j < client_count - 1; j++) {
+                clients[j] = clients[j + 1];
+            }
+            client_count--;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&client_mutex);
+}
+
+int is_admin(const char* username) {
+    for (int i = 0; i < admin_count; i++) {
+        if (strcmp(username, admin_list[i]) == 0) {
             return 1;
         }
     }
     return 0;
 }
 
-// Server herunterfahren
-void shutdown_server(server_state_t* state) {
-    close(state->listener_fd);
-    pthread_mutex_destroy(&state->lock);
-}
-
-// Verarbeitung pro Client
 void* client_handler(void* arg) {
-    client_info_t* client = (client_info_t*)arg;
-    char buffer[MSG_SIZE];
+    int client_socket = *(int*)arg;
+    free(arg);
 
-    // Benutzername empfangen
-    int bytes_received = recv(client->socket_fd, buffer, MSG_SIZE - 1, 0);
-    if (bytes_received <= 0) {
-        close(client->socket_fd);
-        free(client);
+    char username[MSG_SIZE];
+    ssize_t len = recv(client_socket, username, MSG_SIZE, 0);
+    if (len <= 0) {
+        close(client_socket);
         return NULL;
     }
-    buffer[bytes_received] = '\0';
-    strip_newline(buffer);
+    username[strcspn(username, "\n")] = '\0';
 
-    strncpy(client->username, buffer, MSG_SIZE - 1);
-    client->username[MSG_SIZE - 1] = '\0';
+    Client* client = malloc(sizeof(Client));
+    client->socket = client_socket;
+    strncpy(client->username, username, MSG_SIZE);
+    client->is_admin = is_admin(username);
 
-    client->is_admin = is_admin(client->username, client->server_state);
+    pthread_mutex_lock(&client_mutex);
+    clients[client_count++] = client;
+    pthread_mutex_unlock(&client_mutex);
 
-    printf("%s connected%s.\n", client->username, client->is_admin ? " (admin)" : "");
+    printf("%s connected%s.\n", username, client->is_admin ? " (admin)" : "");
 
-    while (1) {
-        bytes_received = recv(client->socket_fd, buffer, MSG_SIZE - 1, 0);
-        if (bytes_received <= 0) break;
+    char buffer[MSG_SIZE];
+    while ((len = recv(client_socket, buffer, MSG_SIZE, 0)) > 0) {
+        buffer[strcspn(buffer, "\n")] = '\0';
 
-        buffer[bytes_received] = '\0';
-        strip_newline(buffer);
+        char full_msg[MSG_SIZE + MSG_SIZE];
+        snprintf(full_msg, sizeof(full_msg), "%s: %s\n", client->username, buffer);
+        printf("%s", full_msg);
+        broadcast(full_msg, client_socket);
 
-        // Admin: /shutdown
-        if (client->is_admin && strcmp(buffer, "/shutdown") == 0) {
-            pthread_mutex_lock(&client->server_state->lock);
-            if (!client->server_state->shutdown_requested) {
-                client->server_state->shutdown_requested = 1;
-                pthread_cancel(client->server_state->listener_thread_id);
-                printf("%s: /shutdown\n", client->username);
-                printf("%s disconnected (admin).\n", client->username);
-                printf("Server is shutting down. Waiting for %d client(s) to disconnect.\n",
-                       client->server_state->active_clients - 1); // sich selbst nicht zählen
+        if (strcmp(buffer, "/shutdown") == 0) {
+            if (client->is_admin && !shutting_down) {
+                shutting_down = 1;
+                printf("Server is shutting down.\n");
+
+                pthread_cancel(listener_thread);
+
+                pthread_mutex_lock(&client_mutex);
+                int remaining = client_count - 1;
+                if (remaining > 0)
+                    printf("Waiting for %d client(s) to disconnect.\n", remaining);
+                pthread_mutex_unlock(&client_mutex);
+            } else {
+                const char* msg = "Only admins can shut down the server.\n";
+                send(client_socket, msg, strlen(msg), 0);
             }
-            pthread_mutex_unlock(&client->server_state->lock);
-            break;
         }
-
-        // Jeder: /quit
-        if (strcmp(buffer, "/quit") == 0) {
-            printf("%s disconnected%s.\n", client->username, client->is_admin ? " (admin)" : "");
-            break;
-        }
-
-        // Nachricht anzeigen
-        printf("%s: %s\n", client->username, buffer);
     }
 
-    close(client->socket_fd);
-
-    pthread_mutex_lock(&client->server_state->lock);
-    client->server_state->active_clients--;
-    int remaining = client->server_state->active_clients;
-    pthread_mutex_unlock(&client->server_state->lock);
-
-    free(client);
-
-    if (client->server_state->shutdown_requested && remaining == 0) {
-        printf("All clients disconnected, shutting down server...\n");
-        shutdown_server(client->server_state);
-    }
-
+    printf("%s disconnected%s.\n", client->username, client->is_admin ? " (admin)" : "");
+    remove_client(client_socket);
     return NULL;
 }
 
-// Listener-Thread: wartet auf neue Verbindungen
-void* listener(void* arg) {
-    server_state_t* state = (server_state_t*)arg;
-
-    // pthread_cancel soll funktionieren
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
-
+void* listen_for_clients(void* arg) {
+    int server_socket = *(int*)arg;
     while (1) {
-        int client_fd = accept(state->listener_fd, NULL, NULL);
-        if (client_fd < 0) {
-            if (state->shutdown_requested) break;
+        struct sockaddr_in client_addr;
+        socklen_t addrlen = sizeof(client_addr);
+        int* client_socket = malloc(sizeof(int));
+        *client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &addrlen);
+        if (*client_socket < 0) {
+            free(client_socket);
+            if (errno == EINTR || shutting_down) break;
             perror("accept");
             continue;
         }
 
-        client_info_t* client = malloc(sizeof(client_info_t));
-        if (!client) {
-            perror("malloc");
-            close(client_fd);
-            continue;
-        }
-
-        client->socket_fd = client_fd;
-        client->server_state = state;
-
-        pthread_create(&client->thread_id, NULL, client_handler, client);
-        pthread_detach(client->thread_id);
-
-        pthread_mutex_lock(&state->lock);
-        state->active_clients++;
-        pthread_mutex_unlock(&state->lock);
+        pthread_t tid;
+        pthread_create(&tid, NULL, client_handler, client_socket);
+        pthread_detach(tid);
     }
-
     return NULL;
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2 || argc > 7) {
-        fprintf(stderr, "Usage: %s <port> [admin1] [admin2] [admin3] [admin4] [admin5]\n", argv[0]);
-        return EXIT_FAILURE;
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s <port> <admin1> [admin2 ...]\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
 
     int port = atoi(argv[1]);
-
-    server_state_t state = {0};
-    pthread_mutex_init(&state.lock, NULL);
-
-    // Admins übernehmen
-    for (int i = 0; i < 5 && i + 2 < argc; i++) {
-        strncpy(state.admins[i], argv[i + 2], MSG_SIZE - 1);
-        state.admins[i][MSG_SIZE - 1] = '\0';
-        state.num_admins++;
+    for (int i = 2; i < argc && i < 2 + MAX_ADMINS; i++) {
+        strncpy(admin_list[admin_count++], argv[i], MSG_SIZE);
     }
 
-    // Socket anlegen
-    state.listener_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (state.listener_fd < 0) {
+    int server_socket = socket(PF_INET, SOCK_STREAM, 0);
+    if (server_socket < 0) {
         perror("socket");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
+
+    int opt = 1;
+    setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     struct sockaddr_in addr = {
         .sin_family = AF_INET,
-        .sin_addr.s_addr = htonl(INADDR_ANY),
         .sin_port = htons(port),
+        .sin_addr.s_addr = htonl(INADDR_ANY)
     };
 
-    // Binden
-    if (bind(state.listener_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+    if (bind(server_socket, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         perror("bind");
-        close(state.listener_fd);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
-    // Lauschen
-    if (listen(state.listener_fd, 5) < 0) {
+    if (listen(server_socket, 5) < 0) {
         perror("listen");
-        close(state.listener_fd);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
-    printf("Server listening on port %d\n", port);
+    printf("Listening on port %d.\n", port);
+    pthread_create(&listener_thread, NULL, listen_for_clients, &server_socket);
 
-    // Listener-Thread starten
-    if (pthread_create(&state.listener_thread_id, NULL, listener, &state) != 0) {
-        perror("pthread_create");
-        close(state.listener_fd);
-        return EXIT_FAILURE;
+    pthread_join(listener_thread, NULL);
+
+    // Wait for all clients to disconnect
+    while (1) {
+        pthread_mutex_lock(&client_mutex);
+        if (client_count == 0) {
+            pthread_mutex_unlock(&client_mutex);
+            break;
+        }
+        pthread_mutex_unlock(&client_mutex);
+        sleep(1);
     }
 
-    pthread_join(state.listener_thread_id, NULL);
+    close(server_socket);
     return 0;
 }

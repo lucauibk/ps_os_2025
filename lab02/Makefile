@@ -10,7 +10,15 @@ EXERCISE = 08
 # Adjust this list according to your setup.
 # The zip command will also show which files are put into the archive.
 # Check this output to ensure that only the required files are included.
-EXCLUDE_PATTERNS = "**.vscode/*" "**.idea/*" "**__MACOSX/*" "**.DS_Store*" "**.dSYM/*"
+EXCLUDE_PATTERNS = \
+    "**.vscode/*" \
+    "**.idea/*" \
+    "**__MACOSX/*" \
+    "**.DS_Store/*" \
+    "**.dSYM/*" \
+    "**/*.o" \
+    "**/a.out" \
+    "README.md"
 
 ARCHIVE= "../exc$(EXERCISE)_$(USERNAME).zip"
 
