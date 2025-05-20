@@ -17,7 +17,7 @@ PERSONS = Luca_Stuerz
 MAT_NUMS = 12329458
 
 # Exercise number / folder
-EXERCISE = 08
+EXERCISE = 09
 
 # ---------------------------------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ clean:
 	@echo "Cleaning task folders in exercise$(EXERCISE)..."
 	@for dir in ./exercise$(EXERCISE)/task_*; do \
 	  if [ -d "$$dir" ]; then \
-	    -$(MAKE) -C "$$dir" clean || echo "Warning: no clean target in $$dir"; \
+	    make -C "$$dir" clean || echo "Warning: no clean target in $$dir"; \
 	  fi; \
 	done
 	@rm -f exercise$(EXERCISE)/group.txt

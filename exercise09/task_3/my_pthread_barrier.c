@@ -1,5 +1,8 @@
+#define _DEFAULT_SOURCE // nötig für PTHREAD_BARRIER_SERIAL_THREAD
 #include "my_pthread_barrier.h"
 #include <errno.h>
+#include <pthread.h>
+
 
 int my_pthread_barrier_init(my_pthread_barrier_t *barrier, UNUSED_PARAM void* attr, int count) {
     if (count <= 0) return EINVAL;
