@@ -1,0 +1,39 @@
+Aufgabe 1 – Vergleich von pthread_mutex und eigener Mutex-Implementierung
+
+Zur Laufzeitmessung wurden die beiden Programme use_pthread und use_my_mutex mit /usr/bin/time -v ausgeführt.
+
+1. Laufzeitvergleich
+---------------------
+- use_my_mutex:
+    - User time: 0.58 s
+    - System time: 0.28 s
+    - Elapsed (Wall Clock): 0.87 s
+    - CPU-Auslastung: 99 %
+
+- use_pthread:
+    - User time: 0.70 s
+    - System time: 0.28 s
+    - Elapsed (Wall Clock): 1.00 s
+    - CPU-Auslastung: 98 %
+
+2. Kontextwechsel
+------------------
+- use_my_mutex:
+    - Voluntary context switches: 6
+    - Involuntary context switches: 2
+
+- use_pthread:
+    - Voluntary context switches: 7
+    - Involuntary context switches: 3
+
+3. Analyse
+-----------
+Die eigene Mutex-Implementierung ist in dieser Benchmark-Situation minimal schneller als die Variante mit pthread_mutex. Dies liegt vermutlich daran, 
+dass pthread_mutex auf komplexere interne Mechanismen (z. B. Kernel-basierte Sperren und Scheduling) zurückgreift, während die eigene Implementierung wahrscheinlich busy-wait verwendet. 
+Dadurch ist sie bei geringer Thread-Anzahl und hoher CPU-Verfügbarkeit performanter, allerdings nicht skalierbar oder effizient bei echter Konkurrenz um CPU-Ressourcen.
+
+Die leicht erhöhte Anzahl an Kontextwechseln bei pthread_mutex deutet auf ein ausgeklügelteres Wartesystem hin, was in realistischeren Szenarien Vorteile bringen kann.
+
+4. Schlussfolgerung
+--------------------
+In einfachen Szenarien mit hoher CPU-Verfügbarkeit kann eine selbst implementierte busy-wait Mutex performanter sein. Für robuste, skalierbare Anwendungen ist jedoch pthread_mutex vorzuziehen.

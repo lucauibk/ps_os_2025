@@ -8,11 +8,6 @@
 
 #include "my_pthread_barrier.h"
 
-#ifndef PTHREAD_BARRIER_SERIAL_THREAD
-#define PTHREAD_BARRIER_SERIAL_THREAD 12345
-#endif
-
-
 typedef struct {
     int id;
     int* rolls;
