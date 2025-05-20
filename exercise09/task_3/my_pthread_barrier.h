@@ -13,7 +13,11 @@
 
 
 typedef struct {
-    // TODO: implement me!
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int count;          // Anzahl Threads, die zur Barrier gehören (initial)
+    int waiting;        // Anzahl aktuell wartender Threads
+    int generation;     // Generation/Run der Barrier für Wiederverwendung.
 } my_pthread_barrier_t;
 
 int my_pthread_barrier_init(my_pthread_barrier_t *barrier, UNUSED_PARAM void* attr, int count);
