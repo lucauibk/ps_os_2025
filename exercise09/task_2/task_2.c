@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         };
         pthread_create(&threads[i], NULL, player_thread, &thread_data[i]);
     }
-
+//cleanup
     for (int i = 0; i < num_players; ++i) {
         pthread_join(threads[i], NULL);
     }
