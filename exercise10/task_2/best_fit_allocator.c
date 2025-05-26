@@ -22,18 +22,20 @@ typedef struct BlockHeader {
 
 #define HEADER_SIZE ALIGN(sizeof(BlockHeader))
 
+static void* memory_pool = NULL;
 static size_t pool_size = 0;
-static _Thread_local void* memory_pool = NULL;
-static _Thread_local BlockHeader* free_list = NULL;
+static BlockHeader* free_list = NULL;
+static pthread_mutex_t alloc_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 void my_allocator_init(size_t size) {
-    if (memory_pool != NULL) return;
-
+    pthread_mutex_lock(&alloc_mutex);
     pool_size = ALIGN(size);
     memory_pool = mmap(NULL, pool_size, PROT_READ | PROT_WRITE,
                        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (memory_pool == MAP_FAILED) {
         memory_pool = NULL;
+        pthread_mutex_unlock(&alloc_mutex);
         return;
     }
 
@@ -41,21 +43,23 @@ void my_allocator_init(size_t size) {
     free_list->size = pool_size;
     free_list->next = NULL;
     free_list->free = true;
+    pthread_mutex_unlock(&alloc_mutex);
 }
 
-
-
 void my_allocator_destroy(void) {
+    pthread_mutex_lock(&alloc_mutex);
     if (memory_pool) {
         munmap(memory_pool, pool_size);
         memory_pool = NULL;
         free_list = NULL;
+        pool_size = 0;
     }
+    pthread_mutex_unlock(&alloc_mutex);
 }
 
 
-
 void* my_malloc(size_t size) {
+    pthread_mutex_lock(&alloc_mutex);
     size_t total_size = ALIGN(size) + HEADER_SIZE;
     BlockHeader *best = NULL, *prev = NULL, *curr = free_list, *best_prev = NULL;
 
@@ -70,7 +74,10 @@ void* my_malloc(size_t size) {
         curr = curr->next;
     }
 
-    if (!best) return NULL;
+    if (!best) {
+        pthread_mutex_unlock(&alloc_mutex);
+        return NULL;
+    }
 
     if (best->size >= total_size + HEADER_SIZE + 8) {
         BlockHeader* split = (BlockHeader*)((char*)best + total_size);
@@ -89,16 +96,19 @@ void* my_malloc(size_t size) {
     else
         free_list = best->next;
 
+    pthread_mutex_unlock(&alloc_mutex);
     return (void*)((char*)best + HEADER_SIZE);
 }
-
 
 
 void my_free(void* ptr) {
     if (!ptr) return;
 
+    pthread_mutex_lock(&alloc_mutex);
     BlockHeader* block = (BlockHeader*)((char*)ptr - HEADER_SIZE);
     block->free = true;
+
+    // Füge Block sortiert ein (optional)
     block->next = free_list;
     free_list = block;
 
@@ -115,8 +125,9 @@ void my_free(void* ptr) {
             curr = curr->next;
         }
     }
-}
 
+    pthread_mutex_unlock(&alloc_mutex);
+}
 
 
 // ------
