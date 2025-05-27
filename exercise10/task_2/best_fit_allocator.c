@@ -108,19 +108,26 @@ void my_free(void* ptr) {
     BlockHeader* block = (BlockHeader*)((char*)ptr - HEADER_SIZE);
     block->free = true;
 
-    // Füge Block sortiert ein (optional)
-    block->next = free_list;
-    free_list = block;
+    // Sortiert nach Adresse einfügen
+    if (!free_list || block < free_list) {
+        block->next = free_list;
+        free_list = block;
+    } else {
+        BlockHeader* curr = free_list;
+        while (curr->next && curr->next < block) {
+            curr = curr->next;
+        }
+        block->next = curr->next;
+        curr->next = block;
+    }
 
-    // Mergen
+    // Merge benachbarter Blöcke
     BlockHeader* curr = free_list;
-    while (curr) {
+    while (curr && curr->next) {
         char* curr_end = (char*)curr + curr->size;
-        BlockHeader* next = curr->next;
-
-        if (next && (char*)next == curr_end && next->free) {
-            curr->size += next->size;
-            curr->next = next->next;
+        if ((char*)curr->next == curr_end && curr->next->free) {
+            curr->size += curr->next->size;
+            curr->next = curr->next->next;
         } else {
             curr = curr->next;
         }
@@ -128,6 +135,7 @@ void my_free(void* ptr) {
 
     pthread_mutex_unlock(&alloc_mutex);
 }
+
 
 
 // ------

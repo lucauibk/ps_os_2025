@@ -17,7 +17,7 @@ PERSONS = Luca_Stuerz
 MAT_NUMS = 12329458
 
 # Exercise number / folder
-EXERCISE = 09
+EXERCISE = 10
 
 # ---------------------------------------------------------------------------------------------------
 

@@ -2,7 +2,7 @@ CPPFLAGS += -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE -D_DARWIN_C_SOURCE -D_BS
 CFLAGS += -std=c11 -Wall -Wextra -pedantic -pthread -g -O3
 LDFLAGS += -pthread
 
-TARGETS ?= dummy_allocator
+TARGETS ?= best_fit_allocator
 
 COMMON_OBJS = membench.o allocator_tests.o main.o
 

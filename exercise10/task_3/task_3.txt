@@ -1,0 +1,12 @@
+1 thread(s), 2000 allocations of size 256 - 1024 byte per thread. Avg time per thread:
+        System: 1.74 ms
+        Custom: 117.14 ms
+10 thread(s), 2000 allocations of size 256 - 1024 byte per thread. Avg time per thread:
+        System: 2.05 ms
+        Custom: 1.97 ms
+50 thread(s), 2000 allocations of size 256 - 1024 byte per thread. Avg time per thread:
+        System: 1.99 ms
+        Custom: 1.73 ms
+100 thread(s), 2000 allocations of size 32 - 128 byte per thread. Avg time per thread:
+        System: 1.38 ms
+        Custom: 1.51 ms

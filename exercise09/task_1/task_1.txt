@@ -16,16 +16,6 @@ Zur Laufzeitmessung wurden die beiden Programme use_pthread und use_my_mutex mit
     - Elapsed (Wall Clock): 1.00 s
     - CPU-Auslastung: 98 %
 
-2. Kontextwechsel
-------------------
-- use_my_mutex:
-    - Voluntary context switches: 6
-    - Involuntary context switches: 2
-
-- use_pthread:
-    - Voluntary context switches: 7
-    - Involuntary context switches: 3
-
 3. Analyse
 -----------
 Die eigene Mutex-Implementierung ist in dieser Benchmark-Situation minimal schneller als die Variante mit pthread_mutex. Dies liegt vermutlich daran, 

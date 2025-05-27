@@ -15,7 +15,7 @@
 typedef struct {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
-    int count;          // Anzahl Threads, die zur Barrier gehören (initial)
+    int count;          // Anzahl Threads, die zur Barrier gehören
     int waiting;        // Anzahl aktuell wartender Threads
     int generation;     // Generation/Run der Barrier für Wiederverwendung.
 } my_pthread_barrier_t;

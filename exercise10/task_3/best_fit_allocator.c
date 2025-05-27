@@ -97,6 +97,40 @@ void* my_malloc(size_t size) {
 void my_free(void* ptr) {
     if (!ptr) return;
 
+    pthread_mutex_lock(&alloc_mutex);
+    BlockHeader* block = (BlockHeader*)((char*)ptr - HEADER_SIZE);
+    block->free = true;
+
+    // Sortiert nach Adresse einfügen
+    if (!free_list || block < free_list) {
+        block->next = free_list;
+        free_list = block;
+    } else {
+        BlockHeader* curr = free_list;
+        while (curr->next && curr->next < block) {
+            curr = curr->next;
+        }
+        block->next = curr->next;
+        curr->next = block;
+    }
+
+    // Merge benachbarter Blöcke
+    BlockHeader* curr = free_list;
+    while (curr && curr->next) {
+        char* curr_end = (char*)curr + curr->size;
+        if ((char*)curr->next == curr_end && curr->next->free) {
+            curr->size += curr->next->size;
+            curr->next = curr->next->next;
+        } else {
+            curr = curr->next;
+        }
+    }
+
+    pthread_mutex_unlock(&alloc_mutex);
+}
+
+    if (!ptr) return;
+
     BlockHeader* block = (BlockHeader*)((char*)ptr - HEADER_SIZE);
     block->free = true;
     block->next = free_list;
