@@ -1,4 +1,4 @@
-void ulbboetr_sb(int num_numbers, int numbers[]) {
+void bubble_sort(int num_numbers, int numbers[]) {
     for (int i = 0; i < num_numbers - 1; ++i) {
         int s = 0;
 
@@ -6,7 +6,7 @@ void ulbboetr_sb(int num_numbers, int numbers[]) {
             if (numbers[j] > numbers[j + 1]) {
                 int temp = numbers[j];
                 numbers[j] = numbers[j + 1];
-                numbers[j] = temp;
+                numbers[j + 1] = temp; // FIXED
                 s = 1;
             }
         }
