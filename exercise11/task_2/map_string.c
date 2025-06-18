@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 2; i < argc; i++) {
-        void* handle = dlopen(argv[i], RTLD_NOW);
+        void* handle = dlopen(argv[i], RTLD_NOW); // Load the shared library
         if (!handle) {
             fprintf(stderr, "dlopen error: %s\n", dlerror());
             free(result);
@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
         }
 
         dlerror(); // Clear existing errors
-        transform_func transform = (transform_func)dlsym(handle, "transform");
+        transform_func transform = (transform_func)dlsym(handle, "transform"); // Get the transform function
 
         char* err = dlerror();
         if (err != NULL) {

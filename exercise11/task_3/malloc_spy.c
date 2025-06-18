@@ -11,7 +11,7 @@ char* append_number(char* dst, size_t number, size_t len) {
         return dst;
     }
 
-    if (number > 9) {
+    if (number > 9) { // If the number has more than one digit, recursively append the higher digits first
         char* new_dst = append_number(dst, number / 10, len);
         if (*new_dst != '\0') {
             return new_dst;
@@ -21,11 +21,11 @@ char* append_number(char* dst, size_t number, size_t len) {
         dst = new_dst;
     }
 
-    if (len-- > 0) {
+    if (len-- > 0) { 
         *dst = '0' + number % 10;
     }
 
-    if (len > 0) {
+    if (len > 0) { //
         *(++dst) = '\0';
     }
 

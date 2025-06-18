@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/lucasturz/ps_os_2025/exercise13/zombies/test'
+relocations:     []
+...
